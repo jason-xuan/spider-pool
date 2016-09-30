@@ -21,14 +21,18 @@ headers = {
     'Referer': 'http://music.163.com/',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.8 Safari/537.36'
 }
+
+
+url = 'http://music.163.com/weapi/v1/resource/comments/' + 'A_PL_0_86040100' +'/?csrf_token='
 api_user_playlist = 'http://music.163.com/api/user/playlist?'
+api_playlist_detail = 'http://music.163.com/api/playlist/detail?'
 
 class Music163Spider(CrawlSpider):
     name = "music163"
     allowed_domains = ["music.163.com"]
     start_urls = ["http://music.163.com/discover/artist"]
     rules = [Rule(LinkExtractor(allow='/artist\?id=\d+')),
-             Rule(LinkExtractor(allow='/discover/artist/cat\?id=\d+')),
+             # Rule(LinkExtractor(allow='/discover/artist/cat\?id=\d+')),
              # Rule(LinkExtractor(allow=(r'/discover/artist/cat\?id=\d+&initial=\d+'))),
              Rule(LinkExtractor(allow='/song\?id=\d+'), callback="parse_song")]
 
@@ -73,7 +77,10 @@ class Music163Spider(CrawlSpider):
             item['playlists'] = []
 
         for playlist in json_object['playlist']:
-            item['playlists'].append(playlist['id'])
+            id = playlist['id']
+            item['playlists'].append(id)
+            url = api_playlist_detail + urlencode({'id':id})
+            yield Request(url, callback=self.parse_playlist)
 
         if json_object['more']:
             req = response.meta['req']
@@ -82,3 +89,31 @@ class Music163Spider(CrawlSpider):
             yield Request(url=url, callback=self.parse_user_playlist, meta={'req':req, 'item':item})
         else:
             yield item
+
+    # sample
+    # http://music.163.com/api/playlist/detail?id=578391
+    def parse_playlist(self, response):
+        json_object = json.loads(response.text)
+        result = json_object['result']
+
+        item = PlaylistItem()
+        item['name'] = result['name']
+        item['uid'] = result['id']
+        songs = []
+        item['songs'] = songs
+
+        for song in result['tracks']:
+            id = song['id']
+            songs.append(id)
+
+            song_item = SongItem()
+            song_item['uid'] = id
+            song_item['name'] = song['name']
+            song_item['mp3Url'] = song['mp3Url']
+            yield song_item
+
+            url = 'http://music.163.com/weapi/v1/resource/comments/R_SO_4_' + str(id) + '/?csrf_token='
+            f = FormRequest(url, formdata=data, headers=headers, callback=self.parse_user_id)
+            yield f
+
+        yield item
