@@ -13,12 +13,20 @@ class UserItem(scrapy.Item):
     uid = scrapy.Field()
     playlists = scrapy.Field()
 
+
 class PlaylistItem(scrapy.Item):
     name = scrapy.Field()
     uid = scrapy.Field()
     songs = scrapy.Field()
 
+
 class SongItem(scrapy.Item):
     uid = scrapy.Field()
     name = scrapy.Field()
     mp3Url = scrapy.Field()
+
+
+class SongAudioItem(scrapy.Item):
+    album_name = scrapy.Field()
+    song_name = scrapy.Field()
+    audio = scrapy.Field()

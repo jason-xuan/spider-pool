@@ -14,6 +14,9 @@ BOT_NAME = 'NetEastMusic'
 SPIDER_MODULES = ['NetEastMusic.spiders']
 NEWSPIDER_MODULE = 'NetEastMusic.spiders'
 
+LMDB_SONG_AUDIO = 'SongAudio'
+# LMDB_SONG_AUDIO = '/home/damr/zjxuan/data/SongAudio'
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'NetEastMusic (+http://www.yourdomain.com)'
