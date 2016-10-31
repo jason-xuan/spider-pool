@@ -27,6 +27,10 @@ _API = {
     'song_detail': 'http://music.163.com/api/song/detail/?id={0}&ids=%5B{0}%5D'
 }
 
+_PATH = {
+    'artist' : 'http://music.163.com/artist?id={0}',
+}
+
 
 class Music163Spider(CrawlSpider):
     name = "song"
@@ -34,7 +38,7 @@ class Music163Spider(CrawlSpider):
     start_urls = ["http://music.163.com/discover/artist"]
     rules = [Rule(LinkExtractor(allow='/artist\?id=\d+')),
              Rule(LinkExtractor(allow='/discover/artist/cat\?id=\d+')),
-             Rule(LinkExtractor(allow=(r'/discover/artist/cat\?id=\d+&initial=\d+'))),
+             Rule(LinkExtractor(allow='/discover/artist/cat\?id=\d+&initial=\d+')),
              Rule(LinkExtractor(allow='/song\?id=\d+'), callback="parse_song")]
 
     # get songs comments
@@ -57,7 +61,11 @@ class Music163Spider(CrawlSpider):
         item['album_name'] = result['album']['name']
         item['song_name'] = result['name']
 
-        yield Request(url=result['mp3Url'], callback=self.download_mp3, meta={'item': item})
+        if result['mp3Url'] is None:
+            item['audio'] = "Not Available."
+            yield item
+        else:
+            yield Request(url=result['mp3Url'], callback=self.download_mp3, meta={'item': item})
 
     def download_mp3(self, response):
         item = response.meta['item']
@@ -129,8 +137,8 @@ class Music163Spider(CrawlSpider):
             id = song['id']
             # songs.append(id)
 
-            url = _API['song_detail'] % id
-            yield Request(url=url, callback=self.parse_song)
+            url = _API['song_detail'].format(id)
+            yield Request(url=url, callback=self.parse_song_detail)
 
             url = 'http://music.163.com/weapi/v1/resource/comments/R_SO_4_' + str(id) + '/?csrf_token='
             f = FormRequest(url, formdata=data, headers=headers, callback=self.parse_user_id)
