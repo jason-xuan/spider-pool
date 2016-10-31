@@ -17,6 +17,16 @@ NEWSPIDER_MODULE = 'NetEastMusic.spiders'
 LMDB_SONG_AUDIO = 'SongAudio'
 # LMDB_SONG_AUDIO = '/home/damr/zjxuan/data/SongAudio'
 
+# SQLITE = 'SongAudio.db'
+SQLITE = '/home/damr/zjxuan/data/SongAudio.db'
+
+LOG_FILE = 'song.log'
+LOG_LEVEL = 'INFO'
+
+DEPTH_LIMIT = 10
+
+MEMUSAGE_ENABLED = True
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'NetEastMusic (+http://www.yourdomain.com)'

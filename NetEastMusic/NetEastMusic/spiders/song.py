@@ -6,6 +6,8 @@ from scrapy.http import FormRequest, Request
 
 from urllib import urlencode
 import json
+import requests
+import StringIO
 
 from ..components import get_data_for_post
 from ..items import *
@@ -37,8 +39,8 @@ class Music163Spider(CrawlSpider):
     allowed_domains = ["music.163.com"]
     start_urls = ["http://music.163.com/discover/artist"]
     rules = [Rule(LinkExtractor(allow='/artist\?id=\d+')),
-             Rule(LinkExtractor(allow='/discover/artist/cat\?id=\d+')),
-             Rule(LinkExtractor(allow='/discover/artist/cat\?id=\d+&initial=\d+')),
+             # Rule(LinkExtractor(allow='/discover/artist/cat\?id=\d+')),
+             # Rule(LinkExtractor(allow='/discover/artist/cat\?id=\d+&initial=\d+')),
              Rule(LinkExtractor(allow='/song\?id=\d+'), callback="parse_song")]
 
     # get songs comments
@@ -62,14 +64,13 @@ class Music163Spider(CrawlSpider):
         item['song_name'] = result['name']
 
         if result['mp3Url'] is None:
-            item['audio'] = "Not Available."
-            yield item
+            fake_file = StringIO.StringIO("Not Available.")
+            item['audio'] = fake_file
         else:
-            yield Request(url=result['mp3Url'], callback=self.download_mp3, meta={'item': item})
+            r = requests.get(url=result['mp3Url'])
+            fake_file = StringIO.StringIO(r.content)
+            item['audio'] = fake_file
 
-    def download_mp3(self, response):
-        item = response.meta['item']
-        item['audio'] = response.body
         yield item
 
     # generate user ids
